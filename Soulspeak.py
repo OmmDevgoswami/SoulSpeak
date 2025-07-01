@@ -9,7 +9,8 @@ import langdetect
 from dotenv import load_dotenv
 import speech_recognition as sr
 import tempfile
-from google import genai
+# from google import genai
+import google.generativeai as genai
 from google.genai import types
 import wave
 
