@@ -21,7 +21,8 @@ SUTRA_API_KEY = os.getenv("SUTRA_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API = os.getenv("GEMINI_API")
 
-model = genai.GenerativeModel(api_key=GEMINI_API)
+genai.configure(api_key=GEMINI_API)
+model = genai.GenerativeModel("gemini-2.5-flash-preview-tts")
 
 role_themes = {
     "Mythology Explainer": {
@@ -197,21 +198,20 @@ if st.button("Send") and final_input:
         st.session_state.history.append((final_input, response))
 
         with st.spinner("🎙️ Generating Gemini Voice..."):
-            voice_response = model.generate_content(
-                model="gemini-2.5-flash-preview-tts",
-                contents=[{"text": response}],
-                config=types.GenerateContentConfig(
-                    response_modalities=["AUDIO"],
-                    speech_config=types.SpeechConfig(
-                        voice_config=types.VoiceConfig(
-                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                voice_name="Aoede"
+            try:
+                voice_response = model.generate_content(
+                    contents=[{"text": response}],
+                    config=types.GenerateContentConfig(
+                        response_modalities=["AUDIO"],
+                        speech_config=types.SpeechConfig(
+                            voice_config=types.VoiceConfig(
+                                prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                    voice_name="Aoede"
+                                )
                             )
                         )
                     )
                 )
-            )
-            try:
                 parts = voice_response.candidates[0].content.parts
                 if parts and hasattr(parts[0], "inline_data") and hasattr(parts[0].inline_data, "data"):
                     data = parts[0].inline_data.data
