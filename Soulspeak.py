@@ -21,7 +21,7 @@ SUTRA_API_KEY = os.getenv("SUTRA_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API = os.getenv("GEMINI_API")
 
-client = genai.Client(api_key=GEMINI_API)
+model = genai.GenerativeModel(api_key=GEMINI_API)
 
 role_themes = {
     "Mythology Explainer": {
@@ -197,7 +197,7 @@ if st.button("Send") and final_input:
         st.session_state.history.append((final_input, response))
 
         with st.spinner("🎙️ Generating Gemini Voice..."):
-            voice_response = genai.Client(api_key=GEMINI_API).models.generate_content(
+            voice_response = model.generate_content(
                 model="gemini-2.5-flash-preview-tts",
                 contents=[{"text": response}],
                 config=types.GenerateContentConfig(
