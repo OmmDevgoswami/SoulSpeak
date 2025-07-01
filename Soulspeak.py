@@ -11,7 +11,8 @@ import speech_recognition as sr
 import tempfile
 # from google import genai
 import google.generativeai as genai
-from google.genai import types
+# from google.genai import types
+from google.generativeai import types
 import wave
 
 load_dotenv()
