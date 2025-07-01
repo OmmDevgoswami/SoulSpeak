@@ -201,6 +201,7 @@ if st.button("Send") and final_input:
             try:
                 voice_response = model.generate_content(
                     contents=[{"text": response}],
+                    generation_config={"response_mime_type": "audio/wav"},
                     config=types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
                         speech_config=types.SpeechConfig(
