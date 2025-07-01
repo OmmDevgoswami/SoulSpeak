@@ -9,10 +9,8 @@ import langdetect
 from dotenv import load_dotenv
 import speech_recognition as sr
 import tempfile
-# from google import genai
-import google.generativeai as genai
-# from google.genai import types
-from google.generativeai import types
+from google import genai
+from google.genai import types
 import wave
 
 load_dotenv()
@@ -21,8 +19,7 @@ SUTRA_API_KEY = os.getenv("SUTRA_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 GEMINI_API = os.getenv("GEMINI_API")
 
-genai.configure(api_key=GEMINI_API)
-model = genai.GenerativeModel("gemini-2.5-flash-preview-tts")
+client = genai.Client(api_key=GEMINI_API)
 
 role_themes = {
     "Mythology Explainer": {
@@ -198,27 +195,26 @@ if st.button("Send") and final_input:
         st.session_state.history.append((final_input, response))
 
         with st.spinner("🎙️ Generating Gemini Voice..."):
-            try:
-                voice_response = model.generate_content(response,
-                    generation_config=genai.types.GenerationConfig(
-                        response_mime_type="audio/wav"
-                    ),
-                    stream=False,
-                    safety_settings=None,
-                    tools=None,
-                    response_modality="AUDIO",
-                    speech_config=genai.types.SpeechConfig(
-                        voice_config=genai.types.VoiceConfig(
-                            prebuilt_voice="Aoede"
+            voice_response = genai.Client(api_key=GEMINI_API).models.generate_content(
+                model="gemini-2.5-flash-preview-tts",
+                contents=[{"text": response}],
+                config=types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                                voice_name="Aoede"
+                            )
                         )
                     )
                 )
-                audio_part = voice_response.candidates[0].content.parts[0]
-                if hasattr(audio_part, "inline_data") and hasattr(audio_part.inline_data, "data"):
-                    pcm_data = audio_part.inline_data.data
+            )
+            try:
+                parts = voice_response.candidates[0].content.parts
+                if parts and hasattr(parts[0], "inline_data") and hasattr(parts[0].inline_data, "data"):
+                    data = parts[0].inline_data.data
                     file_name = 'soul_response_voice.wav'
-                    with open(file_name, "wb") as f:
-                        f.write(pcm_data)
+                    wave_file(file_name, data)
                     st.audio(file_name)
             except Exception as e:
                 pass
