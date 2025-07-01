@@ -199,25 +199,26 @@ if st.button("Send") and final_input:
 
         with st.spinner("🎙️ Generating Gemini Voice..."):
             try:
-                voice_response = model.generate_content(
-                    contents=[{"text": response}],
-                    generation_config={"response_mime_type": "audio/wav"},
-                    config=types.GenerateContentConfig(
-                        response_modalities=["AUDIO"],
-                        speech_config=types.SpeechConfig(
-                            voice_config=types.VoiceConfig(
-                                prebuilt_voice_config=types.PrebuiltVoiceConfig(
-                                    voice_name="Aoede"
-                                )
-                            )
+                voice_response = model.generate_content(response,
+                    generation_config=genai.types.GenerationConfig(
+                        response_mime_type="audio/wav"
+                    ),
+                    stream=False,
+                    safety_settings=None,
+                    tools=None,
+                    response_modality="AUDIO",
+                    speech_config=genai.types.SpeechConfig(
+                        voice_config=genai.types.VoiceConfig(
+                            prebuilt_voice="Aoede"
                         )
                     )
                 )
-                parts = voice_response.candidates[0].content.parts
-                if parts and hasattr(parts[0], "inline_data") and hasattr(parts[0].inline_data, "data"):
-                    data = parts[0].inline_data.data
+                audio_part = voice_response.candidates[0].content.parts[0]
+                if hasattr(audio_part, "inline_data") and hasattr(audio_part.inline_data, "data"):
+                    pcm_data = audio_part.inline_data.data
                     file_name = 'soul_response_voice.wav'
-                    wave_file(file_name, data)
+                    with open(file_name, "wb") as f:
+                        f.write(pcm_data)
                     st.audio(file_name)
             except Exception as e:
                 pass
